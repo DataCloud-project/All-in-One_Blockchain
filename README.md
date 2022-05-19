@@ -7,4 +7,4 @@ In order to develop the Blockchain-based decentralised marketplace, we have depl
 3. Configure the Blockchain specification using the chain-spec.json file
 4. For deploying the PoCo v5.3.0 smart contracts follow the [link] (https://github.com/iExecBlockchainComputing/PoCo/tree/v5.3.0) 
 
-For any other queires or assistance please drop us an email to: souvik@iex.ec/anthony@iex.ec/support@iex.ec 
+For any other queires or assistance please drop us an email to: souvik@iex.ec/ anthony@iex.ec/ support@iex.ec 
