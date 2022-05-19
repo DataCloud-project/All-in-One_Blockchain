@@ -3,8 +3,8 @@ In order to develop the Blockchain-based decentralised marketplace, we have depl
 
 ## Step-by-Step guide
 1. Download the official parity docker image from the [Dockerhub](https://hub.docker.com/layers/poco-chaintest/iexechub/poco-chaintest/5.3.0-token-parity/images/sha256-2b16a714b983d06c903de48ff29ac55dfdfac43ed3f8e29d51598fa4ec91bbeb?context=explore)
-2. Configure and prepare the Blockchain node and its behaviour (node description, wallet set up, etc.) by using the config.toml file
-3. Configure the Blockchain specification using the chain-spec.json file
+2. Configure and prepare the Blockchain node and its behaviour (node description, wallet set up, etc.) by using the [config.toml](https://github.com/DataCloud-project/All-in-One_Blockchain/blob/main/config.toml) file
+3. Configure the Blockchain specification using the [chain-spec.json](https://github.com/DataCloud-project/All-in-One_Blockchain) file
 4. For deploying the PoCo v5.3.0 smart contracts follow the [link](https://github.com/iExecBlockchainComputing/PoCo/tree/v5.3.0) 
 
 For any other queires or assistance please drop us an email to: souvik@iex.ec/ anthony@iex.ec/ support@iex.ec 
