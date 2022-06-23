@@ -1,3 +1,8 @@
+<p align="center"><img width=50% src="https://raw.githubusercontent.com/DataCloud-project/toolbox/master/docs/img/datacloud_logo.png"></p>&nbsp;
+
+[![GitHub Issues](https://img.shields.io/github/issues/DataCloud-project/All-in-One_Blockchain.svg)](https://github.com/DataCloud-project/All-in-One_Blockchain/issues)
+[![License](https://img.shields.io/badge/license-Apache2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
 # All-in-One_Blockchain
 In order to develop the Blockchain-based decentralised marketplace, we have deployed All-in-One Blockchain node over the MS Azure testbed. Following is the Step-by-Step guide for developing the All-in-One Blockchain node 
 
