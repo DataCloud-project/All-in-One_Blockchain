@@ -28,7 +28,7 @@
 		{
 			"name": "SERVICE",
 			"description": {},
-			"workClockTimeRef": 0
+			"workClockTimeRef": 3600
 		}
 	],
 	"chains": {
