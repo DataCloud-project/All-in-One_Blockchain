@@ -185,7 +185,7 @@ contract('OrderManagement', async (accounts) => {
 		const workerpoolorder = {
 			workerpool:        WorkerpoolInstance.address,
 			workerpoolprice:   25,
-			hardware:		   '<hardware>',
+			taskmaxduration:   100,
 			volume:            3,
 			tag:               "0x0000000000000000000000000000000000000000000000000000000000000000",
 			category:          4,
@@ -208,7 +208,6 @@ contract('OrderManagement', async (accounts) => {
 			datasetmaxprice:    1,
 			workerpool:         WorkerpoolInstance.address,
 			workerpoolmaxprice: 25,
-			taskmaxprice:       1,
 			taskduration:       20,
 			volume:             1,
 			tag:                "0x0000000000000000000000000000000000000000000000000000000000000000",

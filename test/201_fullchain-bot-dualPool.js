@@ -341,7 +341,7 @@ contract('Fullchain', async (accounts) => {
 					workerpoolorder1 = await scheduler.signWorkerpoolOrder({
 						workerpool:        WorkerpoolInstance.address,
 						workerpoolprice:   15,
-						hardware:		   '<hardware>',
+						taskmaxduration:   100,
 						volume:            2,
 						category:          4,
 						trust:             trusttarget,
@@ -356,7 +356,7 @@ contract('Fullchain', async (accounts) => {
 					workerpoolorder2 = await scheduler.signWorkerpoolOrder({
 						workerpool:        WorkerpoolInstance.address,
 						workerpoolprice:   25,
-						hardware:		   '<hardware>',
+						taskmaxduration:   100,
 						volume:            10,
 						category:          4,
 						trust:             trusttarget,
@@ -393,7 +393,6 @@ contract('Fullchain', async (accounts) => {
 						datasetmaxprice:    1,
 						workerpool:         constants.NULL.ADDRESS,
 						workerpoolmaxprice: 25,
-						taskmaxprice:       1,
 						taskduration:       20,
 						volume:             3, // CHANGE FOR BOT
 						category:           4,

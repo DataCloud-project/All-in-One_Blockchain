@@ -186,7 +186,7 @@ contract('Poco', async (accounts) => {
 		workerpoolorder = await scheduler.signWorkerpoolOrder({
 			workerpool:        WorkerpoolInstance.address,
 			workerpoolprice:   25,
-			hardware:		   '<hardware>',
+			taskmaxduration:   100,
 			volume:            1000,
 			tag:               "0x0000000000000000000000000000000000000000000000000000000000000000",
 			category:          5,
@@ -204,7 +204,6 @@ contract('Poco', async (accounts) => {
 			datasetmaxprice:    1,
 			workerpool:         constants.NULL.ADDRESS,
 			workerpoolmaxprice: 25,
-			taskmaxprice:       1,
 			taskduration:       2,
 			volume:             1,
 			tag:                "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -220,7 +219,7 @@ contract('Poco', async (accounts) => {
 		wrongworkerpoolorder = await scheduler.signWorkerpoolOrder({
 			workerpool:        WorkerpoolInstance.address,
 			workerpoolprice:   25,
-			hardware:		   '<hardware>',
+			taskmaxduration:   100,
 			volume:            1000,
 			tag:               "0x0000000000000000000000000000000000000000000000000000000000000000",
 			category:          4,
@@ -238,7 +237,6 @@ contract('Poco', async (accounts) => {
 			datasetmaxprice:    1,
 			workerpool:         constants.NULL.ADDRESS,
 			workerpoolmaxprice: 25,
-			taskmaxprice:       1,
 			taskduration:       2,
 			volume:             10,
 			tag:                "0x0000000000000000000000000000000000000000000000000000000000000000",
