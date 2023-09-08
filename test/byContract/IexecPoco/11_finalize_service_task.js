@@ -205,42 +205,9 @@ contract('Poco', async (accounts) => {
 			workerpool:         constants.NULL.ADDRESS,
 			workerpoolmaxprice: 1,
 			taskduration:       3600,
-			volume:             1,
+			volume:             2,
 			tag:                "0x0000000000000000000000000000000000000000000000000000000000000000",
 			category:           5,
-			trust:              4,
-			requester:          user.address,
-			beneficiary:        user.address,
-			callback:           constants.NULL.ADDRESS,
-			params:             "<parameters>",
-			salt:               web3.utils.randomHex(32),
-			sign:               constants.NULL.SIGNATURE,
-		});
-		wrongworkerpoolorder = await scheduler.signWorkerpoolOrder({
-			workerpool:        WorkerpoolInstance.address,
-			workerpoolprice:   1,
-			taskmaxduration:   100,
-			volume:            1000,
-			tag:               "0x0000000000000000000000000000000000000000000000000000000000000000",
-			category:          4,
-			trust:             10,
-			apprestrict:       constants.NULL.ADDRESS,
-			datasetrestrict:   constants.NULL.ADDRESS,
-			requesterrestrict: constants.NULL.ADDRESS,
-			salt:              web3.utils.randomHex(32),
-			sign:              constants.NULL.SIGNATURE,
-		});
-		wrongrequestorder = await user.signRequestOrder({
-			app:                AppInstance.address,
-			appmaxprice:        3,
-			dataset:            DatasetInstance.address,
-			datasetmaxprice:    1,
-			workerpool:         constants.NULL.ADDRESS,
-			workerpoolmaxprice: 25,
-			taskduration:       2,
-			volume:             10,
-			tag:                "0x0000000000000000000000000000000000000000000000000000000000000000",
-			category:           4,
 			trust:              4,
 			requester:          user.address,
 			beneficiary:        user.address,
@@ -252,45 +219,44 @@ contract('Poco', async (accounts) => {
 
 		// Market
 		await Promise.all([
-			IexecInstance.matchOrders(apporder, datasetorder, workerpoolorder, requestorder, { from: user.address }),
-			IexecInstance.matchOrders(apporder, datasetorder, wrongworkerpoolorder, wrongrequestorder, { from: user.address }),
+			IexecInstance.matchOrders(apporder, datasetorder, workerpoolorder,        requestorder, { from: user.address }),
 		]);
 
 		deals = await odbtools.utils.requestToDeal(IexecInstance, odbtools.utils.hashRequestOrder(ERC712_domain, requestorder));
-		wrongdeals = await odbtools.utils.requestToDeal(IexecInstance, odbtools.utils.hashRequestOrder(ERC712_domain, wrongrequestorder));
 	});
-	
+
 	it("[setup] Initialization", async () => {
-		tasks[1] = tools.extractEvents(await IexecInstance.initialize(deals[0], 0, { from: scheduler.address }), IexecInstance.address, "TaskInitialize")[0].args.taskid; // good
-		tasks[2] = tools.extractEvents(await IexecInstance.initialize(wrongdeals[0], 0, { from: scheduler.address }), IexecInstance.address, "TaskInitialize")[0].args.taskid; // late
+		tasks[1] = tools.extractEvents(await IexecInstance.initialize(deals[0], 0, { from: scheduler.address }), IexecInstance.address, "TaskInitialize")[0].args.taskid; // interrupt and finalize
+		tasks[2] = tools.extractEvents(await IexecInstance.initialize(deals[0], 1, { from: scheduler.address }), IexecInstance.address, "TaskInitialize")[0].args.taskid; // wait timeout and finalize
 	});
 	
-	it("[9.1] Extension - Correct", async () => {
-		txMined = await IexecInstance.extend(
-				tasks[1],                                                 // task (authorization)
-				3600,                                                      // duration  
-				{ from: user.address }
-			);
-		events = tools.extractEvents(txMined, IexecInstance.address, "TaskExtended");
-		assert.equal(events[0].args.taskid, tasks[1], "check task id");
-		assert.equal(events[0].args.finalDuration, 7200, "check duration");
-	});
-
-	it("[9.2] Extension - Error (wrong category)", async () => {
-		await expectRevert(IexecInstance.extend(
-				tasks[2],                                                 // task (authorization)
-				3600,                                                      // duration  
-				{ from: user.address }
-			), 'Task extension is only for service tasks');
+	it("[11.1] Finalize - Interrupted", async () => {
+		await IexecInstance.interrupt(
+			tasks[1],                                                 // task (authorization)   
+			{ from: user.address }
+		)
+		
+		txMined = await IexecInstance.finalize(tasks[1], web3.utils.utf8ToHex("null"), "0x", { from: scheduler.address });
+		events = tools.extractEvents(txMined, IexecInstance.address, "TaskFinalize");
+		assert.equal(events[0].args.taskid,  tasks[1],                          "check taskid");
+		assert.equal(events[0].args.results, web3.utils.utf8ToHex("null"), "check consensus (results)");
 	});
 	
-	it("[9.3] Extension - Error (too long duration)", async () => {
-		await expectRevert(IexecInstance.extend(
-				tasks[1],                                                 // task (authorization)
-				10000,                                                      // duration  
-				{ from: user.address }
-			), 'Total task duration (after extension) should not exceed the maximum total duration specified by the workerpool');
+	it("[11.2] Finalize - Error (too soon)", async () => {
+		await expectRevert.unspecified(IexecInstance.finalize(tasks[2], web3.utils.utf8ToHex("null"), "0x", { from: scheduler.address }));
+	});
+	
+	it("clock fast forward", async () => {
+		target = Number((await IexecInstance.viewTask(tasks[2])).finalDeadline);
+
+		await web3.currentProvider.send({ jsonrpc: "2.0", method: "evm_increaseTime", params: [ target - (await web3.eth.getBlock("latest")).timestamp ], id: 0 }, () => {});
 	});
 
+	it("[11.3] Finalize - Correct", async () => {
+		txMined = await IexecInstance.finalize(tasks[2], web3.utils.utf8ToHex("null"), "0x", { from: scheduler.address });
+		events = tools.extractEvents(txMined, IexecInstance.address, "TaskFinalize");
+		assert.equal(events[0].args.taskid,  tasks[2],                          "check taskid");
+		assert.equal(events[0].args.results, web3.utils.utf8ToHex("null"), "check consensus (results)");
+	});
 
 });

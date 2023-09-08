@@ -72,6 +72,48 @@ contract IexecPoco2Delegate is IexecPoco2, DelegateBase, IexecERC20Core, Signatu
 			reward(deal.workerpool.owner, kitty, _taskid);
 		}
 	}
+	
+	function successWorkServiceTask(bytes32 _dealid, bytes32 _taskid)
+	internal
+	{
+		IexecLibCore_v5.Deal storage deal = m_deals[_dealid];
+
+		uint256 requesterstake = deal.app.price
+								 .add(deal.dataset.price)
+								 .add(deal.workerpool.price.mul(deal.duration));
+		uint256 poolstake = deal.workerpool.price.mul(deal.duration)
+							.percentage(WORKERPOOL_STAKE_RATIO);
+
+		// seize requester funds
+		seize(deal.requester, requesterstake, _taskid);
+		// dapp reward
+		if (deal.app.price > 0)
+		{
+			reward(deal.app.owner, deal.app.price, _taskid);
+		}
+		// data reward
+		if (deal.dataset.price > 0 && deal.dataset.pointer != address(0))
+		{
+			reward(deal.dataset.owner, deal.dataset.price, _taskid);
+		}
+		// unlock pool stake
+		unlock(deal.workerpool.owner, poolstake);
+		// pool reward performed by consensus manager
+
+		/**
+		 * Retrieve part of the kitty
+		 */
+		uint256 kitty = m_frozens[KITTY_ADDRESS];
+		if (kitty > 0)
+		{
+			kitty = kitty
+					.percentage(KITTY_RATIO) // fraction
+					.max(KITTY_MIN)          // at least this
+					.min(kitty);             // but not more than available
+			seize (KITTY_ADDRESS,         kitty, _taskid);
+			reward(deal.workerpool.owner, kitty, _taskid);
+		}
+	}
 
 	function failedWork(bytes32 _dealid, bytes32 _taskid)
 	internal
@@ -109,15 +151,18 @@ contract IexecPoco2Delegate is IexecPoco2, DelegateBase, IexecERC20Core, Signatu
 		task.dealid               = _dealid;
 		task.idx                  = idx;
 		task.timeref              = deal.duration;
-		task.finalDeadline        = task.timeref.mul(FINAL_DEADLINE_RATIO).add(deal.startTime);
 		
 		/**
 		 * Service Task
 		 */
 		 if(deal.category == 5){
-		task.contributionDeadline = task.timeref.mul(FINAL_DEADLINE_RATIO).add(deal.startTime);
-		 } else {
+		task.contributionDeadline = task.timeref.add(deal.startTime);
+		task.finalDeadline        = task.timeref.add(deal.startTime);
+				
+		} else {
 		task.contributionDeadline = task.timeref.mul(CONTRIBUTION_DEADLINE_RATIO).add(deal.startTime);
+		 task.finalDeadline        = task.timeref.mul(FINAL_DEADLINE_RATIO).add(deal.startTime);
+		
 		 }
 		
 
@@ -341,18 +386,36 @@ contract IexecPoco2Delegate is IexecPoco2, DelegateBase, IexecERC20Core, Signatu
 	{
 		IexecLibCore_v5.Task storage task = m_tasks[_taskid];
 		IexecLibCore_v5.Deal memory  deal = m_deals[task.dealid];
-
-		require(task.status        == IexecLibCore_v5.TaskStatusEnum.REVEALING                                    );
-		require(task.finalDeadline >  now                                                                         );
-		require(task.revealCounter == task.winnerCounter || (task.revealCounter > 0 && task.revealDeadline <= now));
-
+		
 		require((deal.callback == address(0) && _resultsCallback.length == 0) || keccak256(_resultsCallback) == task.resultDigest);
-
-		task.status          = IexecLibCore_v5.TaskStatusEnum.COMPLETED;
-		task.results         = _results;
-		task.resultsCallback = _resultsCallback; // Expansion - result separation
+		
+		if(deal.category == 5 && ((task.status == IexecLibCore_v5.TaskStatusEnum.ACTIVE || task.status == IexecLibCore_v5.TaskStatusEnum.UNSET) && task.finalDeadline <=  now)){
+			
+			task.status          = IexecLibCore_v5.TaskStatusEnum.INTERRUPTED;
+			
+		/**
+		 * Stake and reward management
+		 */
+		successWorkServiceTask(task.dealid, _taskid);
+		distributeRewardsServiceTask(_taskid);
 
 		/**
+		 * Event
+		 */
+		emit TaskFinalize(_taskid, _results);
+		
+		executeCallback(_taskid, _resultsCallback);
+		
+		} else {
+			require(task.status        == IexecLibCore_v5.TaskStatusEnum.REVEALING                                    );
+			require(task.finalDeadline >  now                                                                         );
+			require(task.revealCounter == task.winnerCounter || (task.revealCounter > 0 && task.revealDeadline <= now));
+			
+			task.status          = IexecLibCore_v5.TaskStatusEnum.COMPLETED;
+			task.results         = _results;
+			task.resultsCallback = _resultsCallback; // Expansion - result separation
+			
+			/**
 		 * Stake and reward management
 		 */
 		successWork(task.dealid, _taskid);
@@ -362,8 +425,10 @@ contract IexecPoco2Delegate is IexecPoco2, DelegateBase, IexecERC20Core, Signatu
 		 * Event
 		 */
 		emit TaskFinalize(_taskid, _results);
-
+		
 		executeCallback(_taskid, _resultsCallback);
+		}
+		
 	}
 
 	function claim(
@@ -371,6 +436,10 @@ contract IexecPoco2Delegate is IexecPoco2, DelegateBase, IexecERC20Core, Signatu
 	public override
 	{
 		IexecLibCore_v5.Task storage task = m_tasks[_taskid];
+		IexecLibCore_v5.Deal storage deal = m_deals[task.dealid];
+		
+		require(deal.category != 5, 'You can not claim a service task');
+		
 		require(task.status == IexecLibCore_v5.TaskStatusEnum.ACTIVE
 			 || task.status == IexecLibCore_v5.TaskStatusEnum.REVEALING);
 		require(task.finalDeadline <= now);
@@ -532,6 +601,22 @@ contract IexecPoco2Delegate is IexecPoco2, DelegateBase, IexecERC20Core, Signatu
 		rewardForScheduling(task.dealid, schedulerReward, _taskid);
 	}
 
+
+	/*
+	 * Reward distribution for serviceTask
+	 */
+	function distributeRewardsServiceTask(bytes32 _taskid)
+	internal
+	{
+		IexecLibCore_v5.Task memory task = m_tasks[_taskid];
+		IexecLibCore_v5.Deal memory deal = m_deals[task.dealid];
+
+		// simple reward, no score consideration
+		uint256 workerReward    = deal.workerpool.price.mul(deal.duration).percentage(uint256(100).sub(deal.schedulerRewardRatio));
+		uint256 schedulerReward = deal.workerpool.price.mul(deal.duration).sub(workerReward);
+		rewardForContribution(_msgSender(), workerReward, _taskid);
+		rewardForScheduling(task.dealid, schedulerReward, _taskid);
+	}
 	/**
 	 * Callback for smartcontracts using EIP1154
 	 */
@@ -617,10 +702,11 @@ contract IexecPoco2Delegate is IexecPoco2, DelegateBase, IexecERC20Core, Signatu
 		require(task.status == IexecLibCore_v5.TaskStatusEnum.UNSET
 			 || task.status == IexecLibCore_v5.TaskStatusEnum.ACTIVE);
 		require(task.finalDeadline > now);
+		require(deal.duration.add(extendedDuration) <= deal.maxduration, 'Total task duration (after extension) should not exceed the maximum total duration specified by the workerpool');
 		
-		deal.duration = deal.duration.add(extendedDuration.mul(3600));
+		deal.duration = deal.duration.add(extendedDuration);
 		task.timeref = deal.duration;
-		task.contributionDeadline = task.contributionDeadline.add(extendedDuration.mul(3600).mul(FINAL_DEADLINE_RATIO));
+		task.contributionDeadline = task.contributionDeadline.add(extendedDuration);
 		task.finalDeadline = task.contributionDeadline;
 
 
@@ -652,15 +738,14 @@ contract IexecPoco2Delegate is IexecPoco2, DelegateBase, IexecERC20Core, Signatu
 		uint256 oldDuration = deal.duration;
 		deal.duration = now.sub(deal.startTime);
 		task.timeref = deal.duration;
-		task.contributionDeadline = deal.duration.mul(FINAL_DEADLINE_RATIO).add(deal.startTime);
+		task.contributionDeadline = now;
 		
-		task.finalDeadline = task.contributionDeadline;
-		task.status = IexecLibCore_v5.TaskStatusEnum.INTERRUPTED;
+		task.finalDeadline = now;
 
 		/**
 		 * Stake management
 		 */
-		uint256 unlockedAmount = oldDuration.sub(deal.duration).div(3600).mul(deal.workerpool.price);
+		uint256 unlockedAmount = oldDuration.sub(deal.duration).mul(deal.workerpool.price);
 		unlock(
 			deal.requester,
 			unlockedAmount

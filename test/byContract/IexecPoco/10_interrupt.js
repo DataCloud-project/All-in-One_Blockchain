@@ -112,13 +112,13 @@ contract('Poco', async (accounts) => {
 				break;
 		}
 		await Promise.all([
-			IexecInstance.transfer(scheduler.address, 1000, { from: iexecAdmin.address }),
+			IexecInstance.transfer(scheduler.address, 10000, { from: iexecAdmin.address }),
 			IexecInstance.transfer(worker1.address, 1000, { from: iexecAdmin.address }),
 			IexecInstance.transfer(worker2.address, 1000, { from: iexecAdmin.address }),
 			IexecInstance.transfer(worker3.address, 1000, { from: iexecAdmin.address }),
 			IexecInstance.transfer(worker4.address, 1000, { from: iexecAdmin.address }),
 			IexecInstance.transfer(worker5.address, 1000, { from: iexecAdmin.address }),
-			IexecInstance.transfer(user.address, 1000, { from: iexecAdmin.address }),
+			IexecInstance.transfer(user.address, 10000, { from: iexecAdmin.address }),
 		]);
 	});
 
@@ -184,8 +184,8 @@ contract('Poco', async (accounts) => {
 		});
 		workerpoolorder = await scheduler.signWorkerpoolOrder({
 			workerpool: WorkerpoolInstance.address,
-			workerpoolprice: 25,
-			taskmaxduration: 100,
+			workerpoolprice: 1,
+			taskmaxduration: 10000,
 			volume: 1000,
 			tag: "0x0000000000000000000000000000000000000000000000000000000000000000",
 			category: 5,
@@ -202,8 +202,8 @@ contract('Poco', async (accounts) => {
 			dataset: DatasetInstance.address,
 			datasetmaxprice: 1,
 			workerpool: constants.NULL.ADDRESS,
-			workerpoolmaxprice: 25,
-			taskduration: 2,
+			workerpoolmaxprice: 1,
+			taskduration: 3600,
 			volume: 1,
 			tag: "0x0000000000000000000000000000000000000000000000000000000000000000",
 			category: 5,
@@ -217,8 +217,8 @@ contract('Poco', async (accounts) => {
 		});
 		wrongworkerpoolorder = await scheduler.signWorkerpoolOrder({
 			workerpool: WorkerpoolInstance.address,
-			workerpoolprice: 25,
-			taskmaxduration: 100,
+			workerpoolprice: 1,
+			taskmaxduration: 10000,
 			volume: 1000,
 			tag: "0x0000000000000000000000000000000000000000000000000000000000000000",
 			category: 4,
@@ -235,8 +235,8 @@ contract('Poco', async (accounts) => {
 			dataset: DatasetInstance.address,
 			datasetmaxprice: 1,
 			workerpool: constants.NULL.ADDRESS,
-			workerpoolmaxprice: 25,
-			taskduration: 2,
+			workerpoolmaxprice: 1,
+			taskduration: 3600,
 			volume: 10,
 			tag: "0x0000000000000000000000000000000000000000000000000000000000000000",
 			category: 4,
@@ -264,7 +264,7 @@ contract('Poco', async (accounts) => {
 		tasks[2] = tools.extractEvents(await IexecInstance.initialize(wrongdeals[0], 0, { from: scheduler.address }), IexecInstance.address, "TaskInitialize")[0].args.taskid; // late
 	});
 
-	it("[1.1] Interruption - Correct", async () => {
+	it("[10.1] Interruption - Correct", async () => {
 		txMined = await IexecInstance.interrupt(
 			tasks[1],                                                 // task (authorization)   
 			{ from: user.address }
@@ -273,12 +273,15 @@ contract('Poco', async (accounts) => {
 		assert.equal(events[0].args.taskid, tasks[1], "check task id");
 	});
 
-	it("[1.2] Extension - Error (wrong category)", async () => {
+	it("[10.2] Interruption - Error (wrong category)", async () => {
 		await expectRevert(IexecInstance.interrupt(
 			tasks[2],                                                 // task (authorization)   
 			{ from: user.address }
 		), 'Task interruption is only for service tasks');
 	});
 
+	it("[10.3] Claim - Error (interrupted service task)", async () => {
+		await expectRevert.unspecified(IexecInstance.claim(tasks[1], { from: user.address }));
+	});
 
 });

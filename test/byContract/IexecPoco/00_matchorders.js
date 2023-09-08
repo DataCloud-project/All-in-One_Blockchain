@@ -104,13 +104,13 @@ contract("Poco", async (accounts) => {
 				break;
 		}
 		await Promise.all([
-			IexecInstance.transfer(scheduler.address, 1000, { from: iexecAdmin.address }),
+			IexecInstance.transfer(scheduler.address, 10000, { from: iexecAdmin.address }),
 			IexecInstance.transfer(worker1.address,   1000, { from: iexecAdmin.address }),
 			IexecInstance.transfer(worker2.address,   1000, { from: iexecAdmin.address }),
 			IexecInstance.transfer(worker3.address,   1000, { from: iexecAdmin.address }),
 			IexecInstance.transfer(worker4.address,   1000, { from: iexecAdmin.address }),
 			IexecInstance.transfer(worker5.address,   1000, { from: iexecAdmin.address }),
-			IexecInstance.transfer(user.address,      1000, { from: iexecAdmin.address }),
+			IexecInstance.transfer(user.address,      10000, { from: iexecAdmin.address }),
 		]);
 	});
 
@@ -183,7 +183,7 @@ contract("Poco", async (accounts) => {
 		_workerpoolorder = {
 			workerpool:        WorkerpoolInstance.address,
 			workerpoolprice:   25,
-			taskmaxduration:   100,
+			taskmaxduration:   10000,
 			volume:            1000,
 			tag:               "0x0000000000000000000000000000000000000000000000000000000000000000",
 			category:          4,
@@ -201,7 +201,7 @@ contract("Poco", async (accounts) => {
 			datasetmaxprice:    1,
 			workerpool:         constants.NULL.ADDRESS,
 			workerpoolmaxprice: 25,
-			taskduration:       2,
+			taskduration:       3600,
 			volume:             1,
 			tag:                "0x0000000000000000000000000000000000000000000000000000000000000000",
 			category:           4,
@@ -603,7 +603,8 @@ contract("Poco", async (accounts) => {
 		await matchOrders(
 			{},
 			{},
-			{ category: 5 },
+			{ workerpoolprice:   1,
+			category: 5 },
 			{ category: 5 },
 		);
 		
@@ -612,7 +613,7 @@ contract("Poco", async (accounts) => {
 
 		deal = await IexecInstance.viewDeal(deals[0]);
 		assert.equal  (Number(deal.category),             5                         );
-		assert.equal  (Number(deal.duration),             7200                      );
+		assert.equal  (Number(deal.duration),             3600                      );
 	});
 	
 });

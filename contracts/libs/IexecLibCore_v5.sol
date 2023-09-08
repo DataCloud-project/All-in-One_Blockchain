@@ -62,6 +62,7 @@ library IexecLibCore_v5
 		// execution settings
 		uint256 startTime;
 		uint256 duration;
+		uint256 maxduration;
 		uint256 botFirst;
 		uint256 botSize;
 		// consistency
