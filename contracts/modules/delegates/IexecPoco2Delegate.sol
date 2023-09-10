@@ -730,7 +730,6 @@ contract IexecPoco2Delegate is IexecPoco2, DelegateBase, IexecERC20Core, Signatu
 		
 		IexecLibCore_v5.Deal storage deal = m_deals[task.dealid];
 		require(deal.category == 5, 'Task interruption is only for service tasks');
-		require(deal.requester == msg., 'Task interruption is only for service tasks');
 		
 		require(task.status == IexecLibCore_v5.TaskStatusEnum.UNSET
 			 || task.status == IexecLibCore_v5.TaskStatusEnum.ACTIVE);
