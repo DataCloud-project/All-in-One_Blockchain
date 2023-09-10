@@ -29,4 +29,10 @@ abstract contract DelegateBase is Store, ERC1538Module
 		require(_msgSender() == m_deals[m_tasks[_taskid].dealid].workerpool.owner);
 		_;
 	}
+	
+	modifier onlyRequester(bytes32 _taskid)
+	{
+		require(_msgSender() == m_deals[m_tasks[_taskid].dealid].requester);
+		_;
+	}
 }

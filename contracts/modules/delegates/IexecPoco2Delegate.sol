@@ -692,7 +692,7 @@ contract IexecPoco2Delegate is IexecPoco2, DelegateBase, IexecERC20Core, Signatu
 	
 	function extend(
 		bytes32 _taskid, uint256 extendedDuration)
-	public override
+	public override onlyRequester(_taskid)
 	{
 		IexecLibCore_v5.Task storage task = m_tasks[_taskid];
 		
@@ -724,12 +724,13 @@ contract IexecPoco2Delegate is IexecPoco2, DelegateBase, IexecERC20Core, Signatu
 	
 	function interrupt(
 		bytes32 _taskid)
-	public override
+	public override onlyRequester(_taskid)
 	{
 		IexecLibCore_v5.Task storage task = m_tasks[_taskid];
 		
 		IexecLibCore_v5.Deal storage deal = m_deals[task.dealid];
 		require(deal.category == 5, 'Task interruption is only for service tasks');
+		require(deal.requester == msg., 'Task interruption is only for service tasks');
 		
 		require(task.status == IexecLibCore_v5.TaskStatusEnum.UNSET
 			 || task.status == IexecLibCore_v5.TaskStatusEnum.ACTIVE);
