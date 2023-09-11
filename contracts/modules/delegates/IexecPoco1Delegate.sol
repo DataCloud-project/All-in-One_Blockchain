@@ -200,23 +200,17 @@ contract IexecPoco1Delegate is IexecPoco1, DelegateBase, IexecERC20Core, Signatu
 		m_consumed[ids.workerpoolorderHash] = m_consumed[ids.workerpoolorderHash].add(                 volume    );
 		m_consumed[ids.requestorderHash   ] = m_consumed[ids.requestorderHash   ].add(                 volume    );
 
-		/**
-		 * Service Task
-		 */
 
 		/**
 		 * Service Task
 		 */
 		 uint256 dealprice;
 		 if(_requestorder.category == 5){
-		 	if(_requestorder.taskduration != 0){
-		 	deal.duration = _requestorder.taskduration;
-		 	} else {
-		 	require(_requestorder.taskmaxprice >= _workerpoolorder.workerpoolprice,       'iExecV5-matchOrders-0x70');
-		 	deal.duration = _requestorder.taskmaxprice.div(_workerpoolorder.workerpoolprice);
-		 	}
-		 	dealprice = deal.workerpool.price.mul(deal.duration);
-		 	deal.duration = deal.duration.mul(3600);
+		 require(_requestorder.taskduration != 0,       'iExecV5-matchOrders-0x70');
+		 require(_requestorder.taskduration <= _workerpoolorder.taskmaxduration,       'iExecV5-matchOrders-0x71');
+		 deal.duration = _requestorder.taskduration;
+		 deal.maxduration = _workerpoolorder.taskmaxduration;
+		 dealprice = deal.workerpool.price.mul(_requestorder.taskduration);
 		 } else {
 		 deal.duration = m_categories[deal.category].workClockTimeRef;
 		 dealprice = deal.workerpool.price;

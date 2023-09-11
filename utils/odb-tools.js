@@ -50,7 +50,7 @@ const TYPES =
 	WorkerpoolOrder: [
 		{ type: "address", name:"workerpool"          },
 		{ type: "uint256", name:"workerpoolprice"     },
-		{ type: "string", name:"hardware"     },
+		{ type: "uint256", name:"taskmaxduration"     },
 		{ type: "uint256", name:"volume"              },
 		{ type: "bytes32", name:"tag"                 },
 		{ type: "uint256", name:"category"            },
@@ -67,8 +67,7 @@ const TYPES =
 		{ type: "uint256", name: "datasetmaxprice"    },
 		{ type: "address", name: "workerpool"         },
 		{ type: "uint256", name: "workerpoolmaxprice" },
-		{ type: "uint256", name: "taskmaxprice" },
-		{ type: "uint256", name: "taskduration" },
+		{ type: "uint256", name: "taskduration"       },
 		{ type: "address", name: "requester"          },
 		{ type: "uint256", name: "volume"             },
 		{ type: "bytes32", name: "tag"                },

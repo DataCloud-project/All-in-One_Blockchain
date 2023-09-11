@@ -289,7 +289,7 @@ contract('ERC1154: resultFor', async (accounts) => {
 					workerpoolorder = await scheduler.signWorkerpoolOrder({
 						workerpool:        WorkerpoolInstance.address,
 						workerpoolprice:   25,
-						hardware:		   '<hardware>',
+						taskmaxduration:   100,
 						volume:            1000,
 						category:          4,
 						trust:             0,
@@ -320,7 +320,6 @@ contract('ERC1154: resultFor', async (accounts) => {
 						datasetmaxprice:    0,
 						workerpool:         constants.NULL.ADDRESS,
 						workerpoolmaxprice: 25,
-						taskmaxprice:       1,
 						taskduration:       20,
 						volume:             10,
 						tag:                "0x0000000000000000000000000000000000000000000000000000000000000000",

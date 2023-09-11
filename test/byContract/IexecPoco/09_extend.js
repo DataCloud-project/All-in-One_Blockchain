@@ -113,13 +113,13 @@ contract('Poco', async (accounts) => {
 				break;
 		}
 		await Promise.all([
-			IexecInstance.transfer(scheduler.address, 1000, { from: iexecAdmin.address }),
+			IexecInstance.transfer(scheduler.address, 10000, { from: iexecAdmin.address }),
 			IexecInstance.transfer(worker1.address,   1000, { from: iexecAdmin.address }),
 			IexecInstance.transfer(worker2.address,   1000, { from: iexecAdmin.address }),
 			IexecInstance.transfer(worker3.address,   1000, { from: iexecAdmin.address }),
 			IexecInstance.transfer(worker4.address,   1000, { from: iexecAdmin.address }),
 			IexecInstance.transfer(worker5.address,   1000, { from: iexecAdmin.address }),
-			IexecInstance.transfer(user.address,      1000, { from: iexecAdmin.address }),
+			IexecInstance.transfer(user.address,      10000, { from: iexecAdmin.address }),
 		]);
 	});
 
@@ -185,8 +185,8 @@ contract('Poco', async (accounts) => {
 		});
 		workerpoolorder = await scheduler.signWorkerpoolOrder({
 			workerpool:        WorkerpoolInstance.address,
-			workerpoolprice:   25,
-			hardware:		   '<hardware>',
+			workerpoolprice:   1,
+			taskmaxduration:   10000,
 			volume:            1000,
 			tag:               "0x0000000000000000000000000000000000000000000000000000000000000000",
 			category:          5,
@@ -203,9 +203,8 @@ contract('Poco', async (accounts) => {
 			dataset:            DatasetInstance.address,
 			datasetmaxprice:    1,
 			workerpool:         constants.NULL.ADDRESS,
-			workerpoolmaxprice: 25,
-			taskmaxprice:       1,
-			taskduration:       2,
+			workerpoolmaxprice: 1,
+			taskduration:       3600,
 			volume:             1,
 			tag:                "0x0000000000000000000000000000000000000000000000000000000000000000",
 			category:           5,
@@ -219,8 +218,8 @@ contract('Poco', async (accounts) => {
 		});
 		wrongworkerpoolorder = await scheduler.signWorkerpoolOrder({
 			workerpool:        WorkerpoolInstance.address,
-			workerpoolprice:   25,
-			hardware:		   '<hardware>',
+			workerpoolprice:   1,
+			taskmaxduration:   100,
 			volume:            1000,
 			tag:               "0x0000000000000000000000000000000000000000000000000000000000000000",
 			category:          4,
@@ -238,7 +237,6 @@ contract('Poco', async (accounts) => {
 			datasetmaxprice:    1,
 			workerpool:         constants.NULL.ADDRESS,
 			workerpoolmaxprice: 25,
-			taskmaxprice:       1,
 			taskduration:       2,
 			volume:             10,
 			tag:                "0x0000000000000000000000000000000000000000000000000000000000000000",
@@ -267,23 +265,31 @@ contract('Poco', async (accounts) => {
 		tasks[2] = tools.extractEvents(await IexecInstance.initialize(wrongdeals[0], 0, { from: scheduler.address }), IexecInstance.address, "TaskInitialize")[0].args.taskid; // late
 	});
 	
-	it("[1.1] Extension - Correct", async () => {
+	it("[9.1] Extension - Correct", async () => {
 		txMined = await IexecInstance.extend(
 				tasks[1],                                                 // task (authorization)
-				1,                                                      // duration  
+				3600,                                                      // duration  
 				{ from: user.address }
 			);
 		events = tools.extractEvents(txMined, IexecInstance.address, "TaskExtended");
 		assert.equal(events[0].args.taskid, tasks[1], "check task id");
-		assert.equal(events[0].args.finalDuration, 10800, "check duration");
+		assert.equal(events[0].args.finalDuration, 7200, "check duration");
 	});
 
-	it("[1.2] Extension - Error (wrong category)", async () => {
+	it("[9.2] Extension - Error (wrong category)", async () => {
 		await expectRevert(IexecInstance.extend(
 				tasks[2],                                                 // task (authorization)
-				1,                                                      // duration  
+				3600,                                                      // duration  
 				{ from: user.address }
 			), 'Task extension is only for service tasks');
+	});
+	
+	it("[9.3] Extension - Error (too long duration)", async () => {
+		await expectRevert(IexecInstance.extend(
+				tasks[1],                                                 // task (authorization)
+				10000,                                                      // duration  
+				{ from: user.address }
+			), 'Total task duration (after extension) should not exceed the maximum total duration specified by the workerpool');
 	});
 
 
