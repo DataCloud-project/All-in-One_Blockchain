@@ -290,6 +290,7 @@ contract('ERC1154: resultFor', async (accounts) => {
 						workerpool:        WorkerpoolInstance.address,
 						workerpoolprice:   25,
 						taskmaxduration:   100,
+						hardwaredescription: "",
 						volume:            1000,
 						category:          4,
 						trust:             0,

@@ -309,6 +309,7 @@ contract('Fullchain', async (accounts) => {
 						workerpool:        WorkerpoolInstance.address,
 						workerpoolprice:   25,
 						taskmaxduration:   100,
+						hardwaredescription: "",
 						volume:            3,
 						category:          4,
 						trust:             trusttarget,

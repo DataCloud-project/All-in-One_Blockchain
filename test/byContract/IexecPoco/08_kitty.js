@@ -219,6 +219,7 @@ contract('Poco', async (accounts) => {
 					workerpool:        WorkerpoolInstance.address,
 					workerpoolprice:   100,
 					taskmaxduration:   100,
+					hardwaredescription: "",
 					volume:            1000,
 					tag:               "0x0000000000000000000000000000000000000000000000000000000000000000",
 					category:          4,

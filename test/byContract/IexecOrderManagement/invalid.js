@@ -186,6 +186,7 @@ contract('OrderManagement', async (accounts) => {
 			workerpool:        WorkerpoolInstance.address,
 			workerpoolprice:   25,
 			taskmaxduration:   100,
+			hardwaredescription: "",
 			volume:            3,
 			tag:               "0x0000000000000000000000000000000000000000000000000000000000000000",
 			category:          4,

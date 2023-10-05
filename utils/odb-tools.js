@@ -51,6 +51,7 @@ const TYPES =
 		{ type: "address", name:"workerpool"          },
 		{ type: "uint256", name:"workerpoolprice"     },
 		{ type: "uint256", name:"taskmaxduration"     },
+		{ type: "string" , name:"hardwaredescription" },
 		{ type: "uint256", name:"volume"              },
 		{ type: "bytes32", name:"tag"                 },
 		{ type: "uint256", name:"category"            },

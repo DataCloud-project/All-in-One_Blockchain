@@ -86,6 +86,7 @@ library IexecLibOrders_v5
 		address workerpool;
 		uint256 workerpoolprice;
 		uint256 taskmaxduration;
+		string hardwaredescription;
 		uint256 volume;
 		bytes32 tag;
 		uint256 category;
@@ -210,6 +211,7 @@ library IexecLibOrders_v5
 		,	_workerpoolorder.workerpool
 		,	_workerpoolorder.workerpoolprice
 		,	_workerpoolorder.taskmaxduration
+		,	keccak256(bytes(_workerpoolorder.hardwaredescription))
 		,	_workerpoolorder.volume
 		,	_workerpoolorder.tag
 		,	_workerpoolorder.category
